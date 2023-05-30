@@ -1,4 +1,6 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:sample/models/product.model.dart';
 import 'package:sample/views/second_page.dart';
 
 class MyHomePage extends StatefulWidget {
@@ -11,76 +13,57 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  void _decrementCounter() {
-    if (_counter > 0) {
-      setState(() {
-        _counter--;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.purpleAccent.shade100,
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: () {
+              setState(() {});
+            },
+            icon: const Icon(Icons.refresh),
+          )
+        ],
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Hi ni sample app",
-              style: TextStyle(
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Text(
-              '$_counter',
-              style: const TextStyle(
-                fontSize: 20,
-              ),
-            ),
-            const SizedBox(
-              height: 20,
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                IconButton(
-                  onPressed: _decrementCounter,
-                  icon: const Icon(Icons.remove),
-                ),
-                IconButton(
-                  onPressed: _incrementCounter,
-                  icon: const Icon(Icons.add),
-                ),
-              ],
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const SecondPage(),
-                ),
-              ),
-              child: const Text("Navigate to second page"),
-            ),
-          ],
-        ),
+      body: FutureBuilder<List<ProductModel>>(
+          future: getAllProduct(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.active ||
+                snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            final products = snapshot.data;
+            return ListView.builder(
+              itemCount: products!.length,
+              itemBuilder: (context, index) {
+                final product = products[index];
+                return Card(
+                  child: ListTile(
+                    title: Text(product.name),
+                    subtitle: Text("RM ${product.price}"),
+                  ),
+                );
+              },
+            );
+          }),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.push(
+            context, MaterialPageRoute(builder: (_) => const SecondPage())),
+        child: const Icon(Icons.add),
       ),
     );
+  }
+
+  Future<List<ProductModel>> getAllProduct() async {
+    String endPoint = "http://10.0.2.2:8080/api/product";
+    final res = await Dio().get(endPoint);
+    List<ProductModel> products =
+        List<ProductModel>.from(res.data.map((e) => ProductModel.fromMap(e)))
+            .toList();
+    return products;
   }
 }

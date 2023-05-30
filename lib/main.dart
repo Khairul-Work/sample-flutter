@@ -50,10 +50,11 @@ class MyApp extends StatelessWidget {
             foregroundColor: Colors.white,
           ),
         ),
-        appBarTheme: const AppBarTheme(
-          systemOverlayStyle: SystemUiOverlayStyle(
+        appBarTheme: AppBarTheme(
+          systemOverlayStyle: const SystemUiOverlayStyle(
             statusBarIconBrightness: Brightness.light,
           ),
+          backgroundColor: mycolor.shade400,
         ),
       ),
       home: const MyHomePage(title: 'Sample Apps'),
